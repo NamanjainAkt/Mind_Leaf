@@ -1,0 +1,779 @@
+# MindLeaf — Product Requirements Document
+
+**Version:** 1.0  
+**Author:** Naman Jain  
+**Date:** April 2026  
+**Status:** Draft
+
+---
+
+## Table of Contents
+
+1. [Product Vision](#1-product-vision)
+2. [Target Audience](#2-target-audience)
+3. [Content Catalog — The 10-Book Lineup](#3-content-catalog--the-10-book-lineup)
+4. [Core Features](#4-core-features)
+5. [App Screens & Navigation](#5-app-screens--navigation)
+6. [Data Models — MongoDB Schema](#6-data-models--mongodb-schema)
+7. [API Design — Next.js Serverless Routes](#7-api-design--nextjs-serverless-routes)
+8. [Tech Stack](#8-tech-stack)
+9. [Cloudinary Media Strategy](#9-cloudinary-media-strategy)
+10. [Modular UI Component Library](#10-modular-ui-component-library)
+11. [Build Roadmap](#11-build-roadmap)
+12. [Success Metrics & KPIs](#12-success-metrics--kpis)
+13. [Out of Scope (MVP)](#13-out-of-scope-mvp)
+
+---
+
+## 1. Product Vision
+
+Most people own 10+ books they've never finished. MindLeaf solves the gap between intention and execution — delivering the highest-signal, most transformative ideas from the world's best self-development books through beautifully crafted markdown summaries, bite-sized flashcards, and visual lessons powered by Cloudinary-hosted images and GIFs.
+
+> **"Read less. Absorb more. Become the 1% who actually acts on what they read."**
+
+MindLeaf is not a library. It is not a bookstore. It is a **curated knowledge absorption system** — 10 books, zero filler, stunning visuals, and a habit layer that keeps you coming back.
+
+### Problem Statement
+
+- Most people start books but never finish them
+- Key insights are buried in 300+ pages of context
+- Existing summary apps (Blinkist) are expensive, generic, and visually poor
+- No app combines summaries + structured lessons + visual flashcards in one place
+
+### Solution
+
+A premium mobile reading app with:
+- Full markdown-rendered book summaries
+- Lesson modules broken into digestible chapters
+- Flashcard decks with GIF/image visual examples on every card
+- Streak and progress gamification to build a reading habit
+
+---
+
+## 2. Target Audience
+
+**Primary:** Ambitious 18–35 year olds — students, early professionals, builders — who want to absorb the world's best ideas but lack time to read full books.
+
+**Psychographic:** The top 1% mindset. People who watch self-development content, follow Naval/Goggins/Huberman, and believe in compounding personal growth.
+
+**Secondary:** College students preparing for life post-graduation, wanting mental models and frameworks before entering the real world.
+
+---
+
+## 3. Content Catalog — The 10-Book Lineup
+
+Handpicked for maximum ROI on human potential. No fluff, no bestseller-list padding.
+
+| # | Title | Author | Tag | Why It's Here |
+|---|-------|--------|-----|---------------|
+| 01 | Atomic Habits | James Clear | Systems | The definitive book on behavior change and habit formation |
+| 02 | The Psychology of Money | Morgan Housel | Mindset | Reframes how you think about wealth and financial decisions |
+| 03 | Deep Work | Cal Newport | Focus | Framework for producing high-value work in a distracted world |
+| 04 | Man's Search for Meaning | Viktor Frankl | Philosophy | Finding purpose in suffering — the most human book ever written |
+| 05 | Meditations | Marcus Aurelius | Stoicism | 2000-year-old mental operating system still unmatched |
+| 06 | The 48 Laws of Power | Robert Greene | Strategy | Understanding power dynamics and social strategy |
+| 07 | Thinking, Fast and Slow | Daniel Kahneman | Cognition | How your brain makes decisions — and where it fails |
+| 08 | Can't Hurt Me | David Goggins | Discipline | Pushing past self-imposed limits through radical accountability |
+| 09 | The Almanack of Naval Ravikant | Eric Jorgenson | Wealth | Naval's framework for wealth, happiness, and specific knowledge |
+| 10 | Ikigai | Héctor García & Francesc Miralles | Purpose | The Japanese framework for a life worth living |
+
+### Content Structure Per Book
+
+Every book in MindLeaf follows the same structure:
+
+```
+Book
+├── Cover Image (Cloudinary)
+├── Big Idea Quote (shareable one-liner)
+├── Key Takeaways (3–5 bullet insights)
+├── Full Summary (Markdown, chapter-aware)
+├── Lessons (5–8 standalone lessons)
+│   ├── Title
+│   ├── Markdown body with inline media
+│   ├── Cloudinary images / GIFs
+│   └── Key Action (one actionable step)
+└── Flashcard Deck (10–20 cards)
+    ├── Front: concept / question
+    └── Back: insight + optional GIF/image
+```
+
+---
+
+## 4. Core Features
+
+### 4.1 Markdown Summary Reader
+
+Full markdown-rendered book summaries with chapter-wise navigation.
+
+**Details:**
+- Renderer: `react-native-markdown-display` with custom style overrides via NativeWind
+- Chapter progress stored locally in MMKV, synced to MongoDB
+- Font size control (S / M / L)
+- Line height control
+- Reader themes: Light / Dark / Sepia
+- Estimated read time displayed per chapter
+- Pull-to-refresh for content updates
+- Long-press on any paragraph → highlight menu
+
+### 4.2 Flashcard Decks
+
+Spaced-repetition ready flashcard decks — one deck per book with 10–20 cards.
+
+**Details:**
+- Swipe right = Mastered, Swipe left = Review again
+- Card flip animation via `react-native-reanimated`
+- Front: concept title + question text
+- Back: insight markdown + optional Cloudinary image or GIF
+- Per-book mastery ring (% of cards mastered)
+- Daily flashcard goal (configurable: 5 / 10 / 20 cards)
+- Streak bonus for completing daily flashcard goal
+
+**GIF usage on flashcards:**
+- Habit loop (Atomic Habits) → animated cue → routine → reward cycle
+- System 1 vs System 2 thinking (Thinking Fast & Slow) → animated brain diagram
+- Compound interest visual (Psychology of Money) → animated growth curve
+
+### 4.3 Lessons Module
+
+Each book broken into 5–8 standalone lessons. More structured than the summary, more focused than the full book.
+
+**Details:**
+- Lesson list screen with per-lesson progress state (not started / in progress / completed)
+- Each lesson has: title, markdown body, inline Cloudinary media, and a Key Action at the end
+- Completion ticks the lesson in the user's progress map
+- Completing all lessons for a book unlocks a "Book Mastered" badge
+- `Key Action` is a single sentence the user is meant to take in the next 24 hours
+
+### 4.4 Key Takeaways
+
+The first thing shown when you open a book — before you read a word of the summary.
+
+**Details:**
+- Big Idea: one-liner quote from the book (displayed prominently, Playfair Display font)
+- Top 3–5 distilled insights as a numbered list
+- "Share" button on the Big Idea → generates a 1080×1080 Cloudinary-transformed share card
+- Share card includes: book title, quote, author, and MindLeaf branding
+
+### 4.5 Highlights & Personal Notes
+
+Long-press any paragraph in the summary or a lesson to highlight it.
+
+**Details:**
+- 4 highlight colors: Yellow, Green, Blue, Pink
+- Tap highlighted text to add a personal note
+- All highlights + notes saved to MongoDB per user
+- Highlights screen (`/highlights`) shows all highlights across all books, grouped by book
+- Export all notes as plain text (share sheet)
+
+### 4.6 Streak & Progress System
+
+The habit layer on top of reading — because consistency beats intensity.
+
+**Details:**
+- Daily reading streak counter (incremented by any reading activity)
+- `lastActiveDate` stored on user document, streak resets if gap > 1 day
+- Streak milestones: 3 days, 7 days, 21 days, 66 days (with badge unlocks)
+- Books absorbed counter on profile
+- Weekly reading goal (configurable: 1 / 2 / 3 summaries per week)
+- Push notification reminder (configurable time via `expo-notifications`)
+
+### 4.7 Personal Library
+
+**Details:**
+- Three shelves: Want to Read / In Progress / Completed
+- Auto-moves to Completed when both summary + all lessons are marked done
+- Recently accessed row on Home screen
+- Recommended next book based on matching tags
+
+### 4.8 Visual Media (Cloudinary)
+
+All images and GIFs are hosted on Cloudinary and served via Next.js API proxy.
+
+**Details:**
+- Every lesson has at least one visual asset
+- GIFs are used wherever a concept is easier shown than described
+- Named transformations control size per context (see Section 9)
+- `expo-image` used for rendering — supports WebP, blurhash placeholders, caching
+
+---
+
+## 5. App Screens & Navigation
+
+### Tab Structure (Expo Router)
+
+```
+app/
+├── (tabs)/
+│   ├── index.tsx           → Home
+│   ├── discover.tsx        → Browse / Search
+│   ├── library.tsx         → Personal Shelf
+│   └── profile.tsx         → Stats & Settings
+├── book/
+│   ├── [slug].tsx          → Book Detail
+│   ├── [slug]/
+│   │   ├── summary.tsx     → Markdown Reader
+│   │   ├── lessons.tsx     → Lessons List
+│   │   ├── lesson/
+│   │   │   └── [id].tsx    → Single Lesson
+│   │   └── flashcards.tsx  → Flashcard Deck
+├── highlights.tsx          → All Highlights
+├── streak.tsx              → Streak Calendar & Milestones
+└── _layout.tsx             → Root layout (theme provider, fonts)
+```
+
+### Screen Descriptions
+
+| Route | Screen Name | Description |
+|-------|-------------|-------------|
+| `(tabs)/index` | Home | Featured book hero, Continue Reading row, Lesson of the Day card, Streak widget |
+| `(tabs)/discover` | Discover | All 10 books in a grid, tag filter chips, search bar |
+| `(tabs)/library` | Library | Three shelves: Want to Read, In Progress, Completed |
+| `(tabs)/profile` | Profile | Streak count, books absorbed, flashcard mastery, theme settings, notification toggle |
+| `book/[slug]` | Book Detail | Cover hero, Big Idea quote, Key Takeaways, action buttons: Read Summary / Lessons / Flashcards |
+| `book/[slug]/summary` | Summary Reader | Full markdown reader, chapter nav bottom sheet, progress bar, highlight long-press |
+| `book/[slug]/lessons` | Lessons List | Ordered lesson cards with completion state, estimated time |
+| `book/[slug]/lesson/[id]` | Lesson Detail | Markdown body + Cloudinary media + Key Action CTA |
+| `book/[slug]/flashcards` | Flashcard Deck | Swipeable deck, flip animation, mastery progress, session summary |
+| `highlights` | My Highlights | All highlights grouped by book, tap to jump, export button |
+| `streak` | Streak Tracker | Calendar heatmap, current streak, milestone badges, weekly goal |
+
+---
+
+## 6. Data Models — MongoDB Schema
+
+### `books` collection
+
+```typescript
+{
+  _id: ObjectId,
+  slug: string,               // "atomic-habits" — unique URL key
+  title: string,
+  author: string,
+  coverImageId: string,       // Cloudinary public_id
+  tags: string[],             // ["systems", "habits", "behavior"]
+  readTimeMinutes: number,    // estimated full summary read time
+  bigIdea: string,            // one-liner quote for share card
+  takeaways: string[],        // 3–5 key insights (plain text)
+  summaryMarkdown: string,    // full markdown content
+  chapters: [
+    {
+      title: string,
+      anchorId: string,       // used for chapter nav
+      readTimeMinutes: number
+    }
+  ],
+  totalLessons: number,       // denormalized count
+  totalFlashcards: number,    // denormalized count
+  publishedAt: Date,
+  updatedAt: Date
+}
+```
+
+### `lessons` collection
+
+```typescript
+{
+  _id: ObjectId,
+  bookId: ObjectId,           // ref: books
+  bookSlug: string,           // denormalized for query convenience
+  order: number,              // display sequence (1-indexed)
+  title: string,
+  bodyMarkdown: string,       // markdown with ![alt](cloudinary_url) inline
+  mediaAssets: [
+    {
+      type: 'image' | 'gif',
+      cloudinaryId: string,
+      caption: string,
+      transformName: string   // named transformation to apply
+    }
+  ],
+  keyAction: string,          // one actionable step shown at lesson end
+  readTimeMinutes: number,
+  createdAt: Date
+}
+```
+
+### `flashcards` collection
+
+```typescript
+{
+  _id: ObjectId,
+  bookId: ObjectId,           // ref: books
+  bookSlug: string,
+  order: number,
+  front: string,              // concept title or question
+  back: string,               // insight markdown (can include formatting)
+  backMediaId: string | null, // Cloudinary public_id for image/GIF
+  mediaType: 'image' | 'gif' | null,
+  createdAt: Date
+}
+```
+
+### `users` collection
+
+```typescript
+{
+  _id: ObjectId,
+  deviceId: string,           // Expo Constants.deviceId (no-auth MVP)
+  streak: number,
+  lastActiveDate: Date,
+  weeklyGoal: number,         // 1 | 2 | 3 summaries/week
+  dailyFlashcardGoal: number, // 5 | 10 | 20
+  booksWantToRead: ObjectId[],
+  booksInProgress: ObjectId[],
+  booksCompleted: ObjectId[],
+  highlights: [
+    {
+      bookId: ObjectId,
+      paragraphId: string,    // deterministic ID from paragraph content hash
+      text: string,           // highlighted text
+      color: 'yellow' | 'green' | 'blue' | 'pink',
+      note: string | null,
+      createdAt: Date
+    }
+  ],
+  flashcardProgress: {
+    // key: bookId.toString()
+    [bookId: string]: {
+      mastered: string[],     // flashcard _id strings
+      review: string[]
+    }
+  },
+  readingProgress: {
+    // key: bookId.toString()
+    [bookId: string]: {
+      chapterIndex: number,
+      scrollPercent: number,
+      lessonsCompleted: string[] // lesson _id strings
+    }
+  },
+  notificationsEnabled: boolean,
+  reminderTime: string | null, // "08:00" HH:mm
+  theme: 'light' | 'dark' | 'sepia',
+  createdAt: Date,
+  updatedAt: Date
+}
+```
+
+### Indexes
+
+```
+books:         { slug: 1 }  (unique)
+lessons:       { bookId: 1, order: 1 }
+flashcards:    { bookId: 1, order: 1 }
+users:         { deviceId: 1 }  (unique)
+```
+
+---
+
+## 7. API Design — Next.js Serverless Routes
+
+All routes live under `app/api/` in the Next.js 14 App Router. MongoDB connection via Mongoose with connection pooling in a shared `lib/db.ts`.
+
+### Books
+
+| Method | Route | Description | Response |
+|--------|-------|-------------|----------|
+| GET | `/api/books` | All books, lightweight (no summaryMarkdown) | `Book[]` (partial) |
+| GET | `/api/books/[slug]` | Full book detail including markdown | `Book` (full) |
+| GET | `/api/books/[slug]/lessons` | All lessons for a book (no bodyMarkdown) | `Lesson[]` (partial) |
+| GET | `/api/books/[slug]/lessons/[id]` | Single lesson with full markdown + media | `Lesson` (full) |
+| GET | `/api/books/[slug]/flashcards` | Full flashcard deck for a book | `Flashcard[]` |
+
+### User
+
+| Method | Route | Description | Body |
+|--------|-------|-------------|------|
+| POST | `/api/user/init` | Create or fetch user by deviceId | `{ deviceId }` |
+| GET | `/api/user/[deviceId]` | Full user profile + progress | — |
+| PATCH | `/api/user/progress` | Update reading/lesson progress + streak | `{ deviceId, bookId, progress }` |
+| PATCH | `/api/user/flashcards` | Update mastered/review sets | `{ deviceId, bookId, masteredIds, reviewIds }` |
+| PATCH | `/api/user/library` | Move book between shelves | `{ deviceId, bookId, shelf }` |
+| POST | `/api/user/highlights` | Save a new highlight + optional note | `{ deviceId, highlight }` |
+| PATCH | `/api/user/highlights/[id]` | Edit note on existing highlight | `{ note }` |
+| DELETE | `/api/user/highlights/[id]` | Delete a highlight | — |
+| GET | `/api/user/highlights` | All highlights for a user | `?deviceId=` |
+| PATCH | `/api/user/settings` | Update theme, notification, goal settings | `{ deviceId, settings }` |
+
+### Media
+
+| Method | Route | Description |
+|--------|-------|-------------|
+| GET | `/api/media/[cloudinaryId]` | Return signed Cloudinary URL for private assets |
+
+### Streak Logic (server-side in PATCH /user/progress)
+
+```typescript
+const today = new Date().toDateString();
+const lastActive = new Date(user.lastActiveDate).toDateString();
+const yesterday = new Date(Date.now() - 86400000).toDateString();
+
+if (lastActive === today) {
+  // same day — no change to streak
+} else if (lastActive === yesterday) {
+  // consecutive day — increment streak
+  user.streak += 1;
+} else {
+  // gap — reset streak
+  user.streak = 1;
+}
+user.lastActiveDate = new Date();
+```
+
+---
+
+## 8. Tech Stack
+
+### Mobile App
+
+| Layer | Technology | Version | Purpose |
+|-------|-----------|---------|---------|
+| Framework | React Native + Expo | SDK 51 | Cross-platform mobile |
+| Styling | NativeWind | v4 | Tailwind-style utility classes on native |
+| Navigation | Expo Router | v3 | File-based navigation, deep linking |
+| Global State | Zustand | latest | Theme, user prefs, book cache |
+| Local Persistence | MMKV | latest | Reading progress, offline cache |
+| Markdown | react-native-markdown-display | latest | Render summary + lesson markdown |
+| Animations | react-native-reanimated | v3 | Flashcard flip, transitions |
+| Gestures | react-native-gesture-handler | v2 | Swipe gestures on flashcard deck |
+| Images | expo-image | latest | Cached images, WebP, blurhash |
+| Notifications | expo-notifications | latest | Daily reading reminders |
+| Fonts | expo-font | latest | Playfair Display + DM Sans |
+
+### Backend
+
+| Layer | Technology | Version | Purpose |
+|-------|-----------|---------|---------|
+| Framework | Next.js | 14 (App Router) | Serverless API routes |
+| Runtime | Node.js | 20 LTS | — |
+| Database | MongoDB Atlas | — | Primary data store |
+| ODM | Mongoose | v8 | Schema validation, connection pooling |
+| Media CDN | Cloudinary | Node SDK v2 | Asset hosting, transforms, signed URLs |
+| Deployment | Vercel | — | Serverless functions, global CDN |
+| Environment | dotenv / Vercel env | — | Secrets management |
+
+### Environment Variables (Next.js)
+
+```env
+MONGODB_URI=mongodb+srv://...
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
+```
+
+---
+
+## 9. Cloudinary Media Strategy
+
+All visual assets are uploaded to Cloudinary once and referenced by `public_id` in MongoDB. The Next.js API proxies signed URLs so API secrets never reach the client.
+
+### Folder Structure on Cloudinary
+
+```
+mindleaf/
+├── covers/          → book cover images
+├── lessons/         → lesson inline images
+├── flashcards/      → flashcard back images + GIFs
+└── share/           → pre-generated share card templates
+```
+
+### Named Transformations
+
+Create these in the Cloudinary dashboard under Settings > Upload > Named Transformations:
+
+| Name | Transformation | Used In |
+|------|---------------|---------|
+| `book_cover_card` | `w_200,h_280,c_fill,q_auto,f_webp` | BookCard, Discover grid |
+| `book_cover_hero` | `w_400,h_560,c_fill,q_auto,f_webp` | Book Detail hero |
+| `lesson_media` | `w_720,q_auto,f_auto` | Inline in lesson markdown |
+| `flashcard_gif` | `w_480,h_320,c_fill,fl_lossy` | Flashcard back GIF |
+| `share_card` | `w_1080,h_1080,c_fill,q_auto` | Share card export |
+
+### Constructing URLs in Next.js
+
+```typescript
+import { v2 as cloudinary } from 'cloudinary';
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+export function getMediaUrl(publicId: string, transformName: string): string {
+  return cloudinary.url(publicId, {
+    named_transformation: transformName,
+    sign_url: true,
+    secure: true,
+  });
+}
+```
+
+### GIF Concept Map
+
+| Book | Concept | GIF Description |
+|------|---------|----------------|
+| Atomic Habits | Habit Loop | Animated: Cue → Routine → Reward cycle |
+| Atomic Habits | 1% Better | Animated compound growth curve |
+| Psychology of Money | Compounding | Animated: small savings snowballing |
+| Thinking Fast & Slow | System 1 vs 2 | Split-brain animation: fast/slow response |
+| Deep Work | Flow State | Focus depth ramp visualization |
+| Atomic Habits | Identity-based habits | "I am a reader" identity circle animation |
+
+---
+
+## 10. Modular UI Component Library
+
+All components built with NativeWind. Each is isolated, props-driven, and composable.
+
+### Component List
+
+| Component | File | Props | Description |
+|-----------|------|-------|-------------|
+| `BookCard` | `components/BookCard.tsx` | `book, onPress, variant` | Grid/list book item with cover, title, read time, tag pill |
+| `BookHero` | `components/BookHero.tsx` | `book` | Full-width hero with cover, title, author, Big Idea quote |
+| `TakeawayList` | `components/TakeawayList.tsx` | `takeaways` | Numbered insight list with Big Idea quote above |
+| `SummaryReader` | `components/SummaryReader.tsx` | `markdown, onProgress` | Markdown renderer with scroll tracking |
+| `ReadingProgressBar` | `components/ReadingProgressBar.tsx` | `percent` | Animated progress bar at top of reader screen |
+| `ChapterNav` | `components/ChapterNav.tsx` | `chapters, activeIndex, onSelect` | Bottom sheet chapter selector |
+| `FlashCard` | `components/FlashCard.tsx` | `card, onSwipe` | Single card with flip + swipe gesture |
+| `FlashcardDeck` | `components/FlashcardDeck.tsx` | `cards, onComplete` | Stack of FlashCards with mastery tracking |
+| `MasteryRing` | `components/MasteryRing.tsx` | `percent, size` | Circular progress ring (SVG-based) |
+| `LessonCard` | `components/LessonCard.tsx` | `lesson, isCompleted, onPress` | Lesson list item with completion tick |
+| `KeyActionBanner` | `components/KeyActionBanner.tsx` | `action` | Highlighted banner at end of lesson |
+| `HighlightMenu` | `components/HighlightMenu.tsx` | `onSelectColor, onAddNote` | Context menu for highlighting |
+| `StreakWidget` | `components/StreakWidget.tsx` | `streak, lastActive` | Flame icon + streak count + calendar dots |
+| `TagPill` | `components/TagPill.tsx` | `label, onPress, active` | Filter chip for discover screen |
+| `ShareCard` | `components/ShareCard.tsx` | `book` | Shareable Big Idea card (triggers Cloudinary URL) |
+| `ThemeToggle` | `components/ThemeToggle.tsx` | `current, onChange` | Light / Dark / Sepia switcher |
+| `ShelfRow` | `components/ShelfRow.tsx` | `books, title, onPressBook` | Horizontal scrollable book row |
+| `EmptyState` | `components/EmptyState.tsx` | `title, subtitle, cta` | Generic empty shelf / no results state |
+
+### Theming
+
+Reader theme values stored in Zustand and applied as NativeWind class variants:
+
+```typescript
+// store/themeStore.ts
+const themes = {
+  light:  { bg: 'bg-white',        text: 'text-gray-900', secondary: 'text-gray-500' },
+  dark:   { bg: 'bg-gray-950',     text: 'text-gray-100', secondary: 'text-gray-400' },
+  sepia:  { bg: 'bg-amber-50',     text: 'text-amber-950', secondary: 'text-amber-700' },
+};
+```
+
+---
+
+## 11. Build Roadmap
+
+### Phase 1 — Foundation (Week 1–2)
+
+**Goal:** Running app shell + one fully seeded book in DB
+
+- [ ] Expo project init with NativeWind v4 + Expo Router v3
+- [ ] Tab navigation skeleton (Home, Discover, Library, Profile)
+- [ ] Next.js 14 project init on Vercel
+- [ ] MongoDB Atlas cluster + Mongoose connection
+- [ ] Book, Lesson, Flashcard, User schemas
+- [ ] Seed Atomic Habits: summary + 6 lessons + 15 flashcards
+- [ ] Cloudinary account + folder structure + named transformations
+- [ ] Upload Atomic Habits cover + 3 lesson images + 2 GIFs
+- [ ] `GET /api/books` and `GET /api/books/[slug]` working
+
+### Phase 2 — Core Reader (Week 3–4)
+
+**Goal:** Read a full summary end-to-end
+
+- [ ] BookCard component
+- [ ] Discover screen with book grid
+- [ ] Book Detail screen (cover, takeaways, action buttons)
+- [ ] Markdown Summary Reader screen
+- [ ] Chapter nav bottom sheet
+- [ ] Reading progress bar (Reanimated)
+- [ ] MMKV progress persistence
+- [ ] `PATCH /api/user/progress` endpoint
+- [ ] User init flow (deviceId → create user)
+
+### Phase 3 — Lessons + Flashcards (Week 5–6)
+
+**Goal:** Full lesson + flashcard flow working
+
+- [ ] Lessons list screen with completion states
+- [ ] Lesson detail screen with inline Cloudinary media
+- [ ] Key Action banner component
+- [ ] Flashcard deck screen
+- [ ] Card flip animation (Reanimated + Gesture Handler)
+- [ ] Swipe left/right mastery tracking
+- [ ] `GET /api/books/[slug]/flashcards` endpoint
+- [ ] Flashcard progress API + Zustand sync
+- [ ] MasteryRing component
+
+### Phase 4 — Engagement Layer (Week 7–8)
+
+**Goal:** Users have a reason to return daily
+
+- [ ] Streak system (server-side logic + client display)
+- [ ] Highlight long-press + color picker
+- [ ] Highlights saved to MongoDB
+- [ ] Highlights screen
+- [ ] Notes on highlights
+- [ ] Big Idea share card (Cloudinary transform)
+- [ ] Push notification setup (expo-notifications)
+- [ ] Seed remaining 9 books fully
+- [ ] Weekly goal setting on profile
+
+### Phase 5 — Polish + Launch (Week 9–10)
+
+**Goal:** App Store ready
+
+- [ ] Onboarding flow (3-screen intro + pick 3 books)
+- [ ] Screen transition animations
+- [ ] Dark / Sepia reader themes
+- [ ] App icon + splash screen
+- [ ] Performance audit (FlatList optimization, image caching)
+- [ ] Offline-first: cache last 2 books locally in MMKV
+- [ ] TestFlight (iOS) + Play Console beta (Android)
+- [ ] Error boundary + Sentry integration
+- [ ] README + deployment docs
+
+---
+
+## 12. Success Metrics & KPIs
+
+### Target: 3 months post-launch
+
+| Metric | Target | How Measured |
+|--------|--------|-------------|
+| Average session duration | 7+ minutes | Expo Analytics / custom events |
+| Day 7 retention (D7) | 40% | Cohort analysis on `lastActiveDate` |
+| Average streak | 5+ days | Aggregated from user collection |
+| Flashcard sessions/week | 3+ per active user | Flashcard progress update events |
+| Books completed per user | 2+ | `booksCompleted.length` avg |
+| App Store rating | 4.5★ | App Store Connect |
+| Lessons completion rate | 60%+ | lessonsCompleted / totalLessons |
+
+### Engagement Events to Track
+
+```
+book_opened
+summary_started
+summary_completed
+lesson_started
+lesson_completed
+flashcard_session_started
+flashcard_card_swiped { direction: 'mastered' | 'review' }
+flashcard_session_completed
+highlight_created
+note_added
+streak_milestone_reached { days: number }
+share_card_generated
+```
+
+---
+
+## 13. Out of Scope (MVP)
+
+The following are intentionally excluded from v1.0 to keep the scope tight:
+
+- **User authentication** — deviceId is sufficient for MVP; no email/password/OAuth
+- **Social features** — no public profiles, followers, or shared highlights
+- **In-app purchases / paywall** — free during beta; monetization in v2
+- **Search within summary** — full-text search deferred to v2
+- **Audio narration** — text-to-speech of summaries deferred
+- **Web version** — mobile-only for MVP
+- **Admin CMS** — content seeded via scripts, not a dashboard
+- **Comments or community** — single-player app for now
+- **More than 10 books** — quality over quantity is the core promise
+
+---
+
+## Appendix A — Directory Structure
+
+### React Native App
+
+```
+mindleaf-app/
+├── app/
+│   ├── (tabs)/
+│   │   ├── index.tsx
+│   │   ├── discover.tsx
+│   │   ├── library.tsx
+│   │   └── profile.tsx
+│   ├── book/
+│   │   ├── [slug].tsx
+│   │   └── [slug]/
+│   │       ├── summary.tsx
+│   │       ├── lessons.tsx
+│   │       ├── flashcards.tsx
+│   │       └── lesson/
+│   │           └── [id].tsx
+│   ├── highlights.tsx
+│   ├── streak.tsx
+│   └── _layout.tsx
+├── components/
+│   ├── BookCard.tsx
+│   ├── FlashCard.tsx
+│   ├── FlashcardDeck.tsx
+│   ├── LessonCard.tsx
+│   ├── MasteryRing.tsx
+│   ├── ReadingProgressBar.tsx
+│   ├── SummaryReader.tsx
+│   ├── StreakWidget.tsx
+│   ├── ShareCard.tsx
+│   └── ... (see Section 10)
+├── store/
+│   ├── themeStore.ts
+│   ├── userStore.ts
+│   └── bookStore.ts
+├── lib/
+│   ├── api.ts             → fetch wrappers for Next.js API
+│   ├── mmkv.ts            → MMKV storage helpers
+│   └── notifications.ts   → expo-notifications setup
+├── types/
+│   └── index.ts           → shared TypeScript types
+└── assets/
+    └── fonts/
+```
+
+### Next.js API
+
+```
+mindleaf-api/
+├── app/
+│   └── api/
+│       ├── books/
+│       │   └── [slug]/
+│       │       ├── route.ts
+│       │       ├── lessons/
+│       │       │   ├── route.ts
+│       │       │   └── [id]/route.ts
+│       │       └── flashcards/route.ts
+│       ├── user/
+│       │   ├── init/route.ts
+│       │   ├── progress/route.ts
+│       │   ├── flashcards/route.ts
+│       │   ├── library/route.ts
+│       │   ├── highlights/
+│       │   │   ├── route.ts
+│       │   │   └── [id]/route.ts
+│       │   └── settings/route.ts
+│       └── media/
+│           └── [cloudinaryId]/route.ts
+├── lib/
+│   ├── db.ts              → Mongoose connection
+│   ├── cloudinary.ts      → Cloudinary config + helpers
+│   └── streak.ts          → Streak calculation logic
+├── models/
+│   ├── Book.ts
+│   ├── Lesson.ts
+│   ├── Flashcard.ts
+│   └── User.ts
+└── scripts/
+    └── seed/
+        ├── atomicHabits.ts
+        └── index.ts
+```
+
+---
+
+*MindLeaf PRD v1.0 — Naman Jain · April 2026*
