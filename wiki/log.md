@@ -1,5 +1,11 @@
 # Wiki Change Log
 
+## [2026-11-10] Repository Initialization
+- Initialized git repo at project root (`main`), remote `origin` -> `github.com/NamanjainAkt/Mind_Leaf`
+- Added root `.gitignore` (Node/Expo/RN, env secrets, native `android/`+`ios/` from `expo prebuild`, logs, OS/editor junk)
+- Initial commit `31611a2` pushed; tracked content is `mindleaf-app/` (constants + zustand stores only), `raw/`, `wiki/`, `mindleaf.txt`, `Orchestrator prompt.txt`, `skills-lock.json`
+- Note: `mindleaf-app` has no `app/`, `lib/`, or `components/` dirs on disk though the wiki references them; `raw/*.txt` duplicate the root `.txt` files
+
 ## [2026-08-22] Mobile App UI Audit & Comprehensive Screen Fixes
 - Replaced blank placeholder screens in `app/(tabs)/index.tsx` (Home), `library.tsx` (Library), and `profile.tsx` (Profile) with rich interactive screens
 - Built Home feed with Daily Spark hero quote, reading stats row, curated 10-book carousel, and spaced repetition flashcard CTA
